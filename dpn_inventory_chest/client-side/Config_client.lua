@@ -2,10 +2,18 @@ ConfigClient = {
     unidades = 20,
     distance = 2, -- Distancia que poderá abrir as lojas
     keyBind = true, -- Se o inventário terá key bind ou seja os 5 primeiros itens ele poderá usar com as teclas 1,2,3,4,5 respectivamente
-    keyBindWeapon = false, -- Se o inventário terá a opção e pegar a arma na mão e desativar o tab ao usar a keybind
+    keyBindWeapon = true, -- Se o inventário terá a opção e pegar a arma na mão e desativar o tab ao usar a keybind
     ip = "http://127.0.0.1/inventario", -- caso use ip por xammp bote o caminho assim http://ip/caminho e tire as iamgens do fx_manifest
     percentual = 0.85, -- Percentual para venda de itens nesse caso padrão está para 85% do valor do item
     tecla = 'oem_3', -- tecla que abrirá o inventario padrão é o aspas
+    disableIncludedShop = true,
+    disableIncludedTrunk = true,
+
+    separatedShop = true,
+    separatedTrunk = true,
+
+    keybindTrunk = "PAGEUP",
+
     blackItemList = {
         trunckchest = {
             "identidade",
@@ -249,9 +257,9 @@ ConfigClient = {
             }, -- 
             perm = nil,
             itens = {
-               ['wbody|WEAPON_MUSKET'] = {price = 20000},
-               ['wbody|WEAPON_KNIFE'] = {price = 10000},
-               ['wammo|WEAPON_MUSKET'] = {price = 20},
+               ['WEAPON_MUSKET'] = {price = 20000},
+               ['WEAPON_KNIFE'] = {price = 10000},
+               ['AMMO_MUSKET'] = {price = 20},
                ['mascara'] = {price = 2000},
             },
         }, 
@@ -273,20 +281,20 @@ ConfigClient = {
             }, -- 
             perm = nil,
             itens = {
-               ['wbody|WEAPON_KNIFE'] = {price = 10000},
-               ['wbody|WEAPON_DAGGER'] = {price = 10000},
-               ['wbody|WEAPON_KNUCKLE'] = {price = 10000},
-               ['wbody|WEAPON_MACHETE'] = {price = 10000},
-               ['wbody|WEAPON_SWITCHBLADE'] = {price = 10000},
-               ['wbody|WEAPON_WRENCH'] = {price = 10000},
-               ['wbody|WEAPON_HAMMER'] = {price = 10000},
-               ['wbody|WEAPON_GOLFCLUB'] = {price = 10000},
-               ['wbody|WEAPON_CROWBAR'] = {price = 10000},
-               ['wbody|WEAPON_HATCHET'] = {price = 10000},
-               ['wbody|WEAPON_BAT'] = {price = 10000},
-               ['wbody|WEAPON_BATTLEAXE'] = {price = 10000},
-               ['wbody|WEAPON_POOLCUE'] = {price = 10000},
-               ['wbody|WEAPON_STONE_HATCHET'] = {price = 10000},
+               ['WEAPON_KNIFE'] = {price = 10000},
+               ['WEAPON_DAGGER'] = {price = 10000},
+               ['WEAPON_KNUCKLE'] = {price = 10000},
+               ['WEAPON_MACHETE'] = {price = 10000},
+               ['WEAPON_SWITCHBLADE'] = {price = 10000},
+               ['WEAPON_WRENCH'] = {price = 10000},
+               ['WEAPON_HAMMER'] = {price = 10000},
+               ['WEAPON_GOLFCLUB'] = {price = 10000},
+               ['WEAPON_CROWBAR'] = {price = 10000},
+               ['WEAPON_HATCHET'] = {price = 10000},
+               ['WEAPON_BAT'] = {price = 10000},
+               ['WEAPON_BATTLEAXE'] = {price = 10000},
+               ['WEAPON_POOLCUE'] = {price = 10000},
+               ['WEAPON_STONE_HATCHET'] = {price = 10000},
             },
         }, 
 
@@ -572,27 +580,137 @@ local marcacoes = {
     
 }
 
-Citizen.CreateThread(function()
-	while true do
-	local idle = 1000
-		if not menuactive then 
-			local ped = PlayerPedId()
-			local pCords = GetEntityCoords(ped)
-			for i = 1,#marcacoes do 
-				local distance = #(pCords - marcacoes[i])
-				if distance < 10 then 
-					idle = 3
-					if distance < 2.0 then 
-						DrawText3Ds(marcacoes[i].x,marcacoes[i].y,marcacoes[i].z +1.25,"~p~APERTE~w~ ~g~[']~w~ | Acessar a Loja")
-						if IsControlJustPressed(0,9999) then
-							ToggleActionMenu()
-						end
-					end
-				end
-			end 
-		end
-		Wait(idle)
-	end
+-- Citizen.CreateThread(function()
+-- 	while true do
+-- 	local idle = 1000
+-- 		if not menuactive then 
+-- 			local ped = PlayerPedId()
+-- 			local pCords = GetEntityCoords(ped)
+-- 			for i = 1,#marcacoes do 
+-- 				local distance = #(pCords - marcacoes[i])
+-- 				if distance < 10 then 
+-- 					idle = 3
+-- 					if distance < 2.0 then 
+-- 						DrawText3Ds(marcacoes[i].x,marcacoes[i].y,marcacoes[i].z +1.25,"~p~APERTE~w~ ~g~[']~w~ | Acessar a Loja")
+-- 						if IsControlJustPressed(0,9999) then
+-- 							ToggleActionMenu()
+-- 						end
+-- 					end
+-- 				end
+-- 			end 
+-- 		end
+-- 		Wait(idle)
+-- 	end
+-- end)
+
+local promptId = "dpn_global_prompt"
+
+CreateThread(function()
+    while true do
+        local idle = 1000
+        local ped = PlayerPedId()
+        local coords = GetEntityCoords(ped)
+
+        local showing = false
+
+        -- 🔹 LOJAS (Config)
+        for shopType, typeData in pairs(ConfigClient.lojas) do
+            for _, shopLocs in pairs(typeData.locs) do
+                local dist = #(coords - vector3(shopLocs[1], shopLocs[2], shopLocs[3]))
+
+                if dist <= ConfigClient.distance then
+                    idle = 0
+                    showing = true
+
+                    exports["ghost_ui"]:ShowPrompt({
+                        id = promptId,
+                        coords = vector3(shopLocs[1], shopLocs[2], shopLocs[3]),
+                        key = "E",
+                        text = "Abrir loja",
+                        type = "default",
+                        maxDistance = 2.5,
+                        offset = 0.5,
+                        priority = 5,
+                        active = true
+                    })
+                end
+            end
+        end
+
+        -- 🔹 BAÚ FAC (Config)
+        for chest, chestData in pairs(ConfigClient.chestFac) do
+            local loc = chestData.loc
+            local dist = #(coords - vector3(loc[1], loc[2], loc[3]))
+
+            if dist <= ConfigClient.distance then
+                idle = 0
+                showing = true
+
+                exports["ghost_ui"]:ShowPrompt({
+                    id = promptId,
+                    coords = vector3(loc[1], loc[2], loc[3]),
+                    key = "E",
+                    text = "Abrir baú",
+                    type = "default",
+                    maxDistance = 2.5,
+                    offset = 0.5,
+                    priority = 6,
+                    active = true
+                })
+            end
+        end
+
+        -- 🔹 LOJINHAS CUSTOM (array antigo)
+        for _, v in pairs(lojinhas or {}) do
+            local dist = #(coords - vector3(v[1], v[2], v[3]))
+
+            if dist <= 2.0 then
+                idle = 0
+                showing = true
+
+                exports["ghost_ui"]:ShowPrompt({
+                    id = promptId,
+                    coords = vector3(v[1], v[2], v[3]),
+                    key = "E",
+                    text = "Abrir loja",
+                    type = "default",
+                    maxDistance = 2.5,
+                    offset = 0.5,
+                    priority = 7,
+                    active = true
+                })
+            end
+        end
+
+        -- 🔹 BAÚS CUSTOM
+        for _, v in pairs(bausfacs or {}) do
+            local dist = #(coords - vector3(v[1], v[2], v[3]))
+
+            if dist <= 2.0 then
+                idle = 0
+                showing = true
+
+                exports["ghost_ui"]:ShowPrompt({
+                    id = promptId,
+                    coords = vector3(v[1], v[2], v[3]),
+                    key = "E",
+                    text = "Abrir baú",
+                    type = "default",
+                    maxDistance = 2.5,
+                    offset = 0.5,
+                    priority = 8,
+                    active = true
+                })
+            end
+        end
+
+        -- 🔻 ESCONDE QUANDO NÃO ESTÁ PERTO
+        if not showing then
+            exports["ghost_ui"]:HidePrompt(promptId)
+        end
+
+        Wait(idle)
+    end
 end)
 
 function DrawText3Ds(x,y,z,text)

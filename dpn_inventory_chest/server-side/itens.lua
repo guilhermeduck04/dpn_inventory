@@ -723,43 +723,43 @@ function itensUse(source, user_id, item, amount, type, slot)
         elseif item == "P-WEAPON_ASSAULTRIFLE" then  ------- OK ------- OK
             if vRP.tryGetInventoryItem(user_id,"P-WEAPON_ASSAULTRIFLE",1,slot) then
                     dPNclient.updateInventory(source)
-                    vRP.giveInventoryItem(user_id,"wammo|WEAPON_ASSAULTRIFLE",30)
+                    vRP.giveInventoryItem(user_id,"AMMO_ASSAULTRIFLE",30)
                     TriggerClientEvent("Notify",source,"sucesso","Caixa aberta!",8000)
             end	
         elseif item == "P-WEAPON_PISTOL_MK2" then  ------- OK ------- OK
             if vRP.tryGetInventoryItem(user_id,"P-WEAPON_PISTOL_MK2",1,slot) then
                     dPNclient.updateInventory(source)
-                    vRP.giveInventoryItem(user_id,"wammo|WEAPON_PISTOL_MK2",30)
+                    vRP.giveInventoryItem(user_id,"AMMO_PISTOL_MK2",30)
                     TriggerClientEvent("Notify",source,"sucesso","Caixa aberta!",8000)
             end	
         elseif item == "P-WEAPON_ASSAULTSMG" then  ------- OK ------- OK
             if vRP.tryGetInventoryItem(user_id,"P-WEAPON_ASSAULTSMG",1,slot) then
                     dPNclient.updateInventory(source)
-                    vRP.giveInventoryItem(user_id,"wammo|WEAPON_ASSAULTSMG",30)
+                    vRP.giveInventoryItem(user_id,"AMMO_ASSAULTSMG",30)
                     TriggerClientEvent("Notify",source,"sucesso","Caixa aberta!",8000)
             end	
         elseif item == "P-WEAPON_MICROSMG" then  ------- OK ------- OK
             if vRP.tryGetInventoryItem(user_id,"P-WEAPON_MICROSMG",1,slot) then
                     dPNclient.updateInventory(source)
-                    vRP.giveInventoryItem(user_id,"wammo|WEAPON_MICROSMG",30)
+                    vRP.giveInventoryItem(user_id,"AMMO_MICROSMG",30)
                     TriggerClientEvent("Notify",source,"sucesso","Caixa aberta!",8000)
             end	
         elseif item == "P-WEAPON_SMG" then  ------- OK ------- OK
             if vRP.tryGetInventoryItem(user_id,"P-WEAPON_SMG",1,slot) then
                     dPNclient.updateInventory(source)
-                    vRP.giveInventoryItem(user_id,"wammo|WEAPON_SMG",30)
+                    vRP.giveInventoryItem(user_id,"AMMO_SMG",30)
                     TriggerClientEvent("Notify",source,"sucesso","Caixa aberta!",8000)
             end	
         elseif item == "P-WEAPON_REVOLVER" then  ------- OK ------- OK
             if vRP.tryGetInventoryItem(user_id,"P-WEAPON_REVOLVER",1,slot) then
                     dPNclient.updateInventory(source)
-                    vRP.giveInventoryItem(user_id,"wammo|WEAPON_REVOLVER",30)
+                    vRP.giveInventoryItem(user_id,"AMMO_REVOLVER",30)
                     TriggerClientEvent("Notify",source,"sucesso","Caixa aberta!",8000)
             end	
         elseif item == "P-WEAPON_GUSENBERG" then  ------- OK ------- OK
             if vRP.tryGetInventoryItem(user_id,"P-WEAPON_GUSENBERG",1,slot) then
                     dPNclient.updateInventory(source)
-                    vRP.giveInventoryItem(user_id,"wammo|WEAPON_GUSENBERG",30)
+                    vRP.giveInventoryItem(user_id,"AMMO_GUSENBERG",30)
                     TriggerClientEvent("Notify",source,"sucesso","Caixa aberta!",8000)
             end	
         --------------------------------------------------------

@@ -144,6 +144,57 @@ function dPN.rechargeAmmo(item, ammoWeapon)
     end
 end
 
+
+
+local autoReloadBusy = false
+
+CreateThread(function()
+    while true do
+        Wait(0)
+
+        if cfgkeyBindWeapon then
+            -- Impede o GTA de trocar de arma automaticamente quando zerar
+            SetWeaponsNoAutoswap(true)
+        else
+            Wait(500)
+        end
+    end
+end)
+
+CreateThread(function()
+    while true do
+        Wait(50)
+
+        if cfgkeyBindWeapon and weaponInHand and not autoReloadBusy then
+            local ped = PlayerPedId()
+            local weaponHash = GetHashKey(weaponInHand)
+            local selectedWeapon = GetSelectedPedWeapon(ped)
+            local ammoInWeapon = GetAmmoInPedWeapon(ped, weaponHash)
+
+            -- Se a arma em mão zerou, tenta manter ela selecionada e recarregar
+            if ammoInWeapon <= 0 then
+                local ammoItem = "wammo|" .. weaponInHand
+                local ammoAmount = dPNserver.getAmmoAmount(ammoItem)
+
+                if ammoAmount and ammoAmount > 0 then
+                    autoReloadBusy = true
+
+                    -- Se o GTA trocou de arma, força voltar para a arma em mão
+                    if selectedWeapon ~= weaponHash then
+                        SetCurrentPedWeapon(ped, weaponHash, true)
+                        Wait(100)
+                    end
+
+                    dPN.rechargeAmmo(ammoItem, ammoAmount)
+
+                    Wait(900)
+                    autoReloadBusy = false
+                end
+            end
+        end
+    end
+end)
+
 RegisterNetEvent('dope:nuis:abririnventario')
 AddEventHandler('dope:nuis:abririnventario', function(cds, casanome)
     if cantOpen or IsPauseMenuActive() then
