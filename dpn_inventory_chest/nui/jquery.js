@@ -12,6 +12,18 @@ click = false
 update = false
 craftUpdate = false
 
+const RESOURCE_NAME = typeof GetParentResourceName === 'function'
+    ? GetParentResourceName()
+    : 'dpn_inventory_chest';
+
+function nuiPost(endpoint, data = {}, cb = null) {
+    $.post(`https://${RESOURCE_NAME}/${endpoint}`, JSON.stringify(data))
+        .done(cb)
+        .fail((err) => {
+            console.error(`Erro no NUI POST -> ${endpoint}`, err)
+        });
+}
+
 var formatter = new Intl.NumberFormat(config.lang, {
     style: 'currency',
     currency: config.currency,
@@ -155,57 +167,54 @@ $(document).ready(function () {
       return
     }
     
-    $.post(
-      'http://dpn_inventory_chest/requestItemSecondInventory',
-      JSON.stringify({ tipo: secondType }),
-      (response) => {
-        $('.name-car').html(secondType)
-        $('#box-menu-item-chest').html('')
-        
-        if (response.chest === false) {
-          const sortedItems = response.itemTable.sort((a, b) => a.name > b.name ? 1 : -1)
-          $('.left-menu-chest').css('opacity', '0')
-          
-          $('#box-menu-item-chest')
-            .empty()
-            .append(sortedItems.map(item => `
-              <div class="slotChest">
-                <div class="item-player venda" 
-                     data-item-price="${item.price}"
-                     data-item-amount="${item.amount}"
-                     data-item-type="${item.type}"
-                     data-item-index="${item.index}"
-                     data-item-peso="${item.peso}"
-                     data-item-key="${item.key}"
-                     data-item-name="${item.name}"
-                     data-item-desc="${item.descricao}"
-                     data-item-funcao="${item.funcao}"
-                     data-weapon-dano="${item.dano}"
-                     data-weapon-cadencia="${item.cadencia}"
-                     data-weapon-precisao="${item.precisao}"
-                     data-weapon-recoil="${item.recoil}"
-                     style="background-image: url('${ip}/${item.index}.png');">
-                  <div class="top-item">
-                    <div class="amount">R$: ${item.price}</div>
-                    <div class="peso">${item.peso.toFixed(1)}kg</div>
-                  </div>
-                  <div class="bottom-item">
-                    <div class="name-item">${item.name}
-                      <div class="typeFilter">${item.filter}</div>
-                    </div>
-                  </div>
-                </div>
+nuiPost('requestItemSecondInventory', { tipo: secondType }, (response) => {
+  $('.name-car').html(secondType)
+  $('#box-menu-item-chest').html('')
+  
+  if (response.chest === false) {
+    const sortedItems = response.itemTable.sort((a, b) => a.name > b.name ? 1 : -1)
+    $('.left-menu-chest').css('opacity', '0')
+    
+    $('#box-menu-item-chest')
+      .empty()
+      .append(sortedItems.map(item => `
+        <div class="slotChest">
+          <div class="item-player venda" 
+               data-item-price="${item.price}"
+               data-item-amount="${item.amount}"
+               data-item-type="${item.type}"
+               data-item-index="${item.index}"
+               data-item-peso="${item.peso}"
+               data-item-key="${item.key}"
+               data-item-name="${item.name}"
+               data-item-desc="${item.descricao}"
+               data-item-funcao="${item.funcao}"
+               data-weapon-dano="${item.dano}"
+               data-weapon-cadencia="${item.cadencia}"
+               data-weapon-precisao="${item.precisao}"
+               data-weapon-recoil="${item.recoil}"
+               style="background-image: url('${ip}/${item.index}.png');">
+            <div class="top-item">
+              <div class="amount">R$: ${item.price}</div>
+              <div class="peso">${item.peso.toFixed(1)}kg</div>
+            </div>
+            <div class="bottom-item">
+              <div class="name-item">${item.name}
+                <div class="typeFilter">${item.filter}</div>
               </div>
-            `).join(''))
-          
-          for (let i = 0; i < 50; i++) {
-            $('#box-menu-item-chest').append('<div class="slotChest venda"></div>')
-          }
-          
-          getHover()
-          getDrag()
-          
-        } else if (response.chest === true) {
+            </div>
+          </div>
+        </div>
+      `).join(''))
+    
+    for (let i = 0; i < 50; i++) {
+      $('#box-menu-item-chest').append('<div class="slotChest venda"></div>')
+    }
+    
+    getHover()
+    getDrag()
+  }
+ else if (response.chest === true) {
           $('.left-menu-chest').css('opacity', '1')
           nomeDoBau = secondType
           $('#box-menu-item-chest').html('')
@@ -370,271 +379,243 @@ $(document).ready(function () {
     getDrag()
   }
 
-  function requsetIdentity() {
-    $.post(
-      'http://dpn_inventory_chest/requsetIdentity',
-      JSON.stringify({}),
-      (response) => {
-        $('.identidade-js')
-          .empty()
-          .html(`
-            <div class="title-identity">
-              <img src="app/dedao.png">
+function requsetIdentity() {
+  nuiPost('requsetIdentity', {}, (response) => {
+    $('.identidade-js')
+      .empty()
+      .html(`
+        <div class="title-identity">
+          <img src="app/dedao.png">
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.nome}</div>
+          <div class="primeiro-identity segundo">${response.nome} ${response.sobrenome}</div>
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.idade}</div>
+          <div class="primeiro-identity segundo">${response.idade} anos</div>
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.passaporte}</div>
+          <div class="primeiro-identity segundo">${response.id}</div>
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.registro}</div>
+          <div class="primeiro-identity segundo">${response.registro}</div>
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.telefone}</div>
+          <div class="primeiro-identity segundo">${response.telefone}</div>
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.profissao}</div>
+          <div class="primeiro-identity segundo">${response.emprego}</div>
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.vip}</div>
+          <div class="primeiro-identity segundo">${response.vip}</div>
+        </div>
+        <div class="itens-identity">
+          <div class="primeiro-identity primeiro">${config.multa}</div>
+          <div class="primeiro-identity segundo">${response.multas}</div>
+        </div>
+        <div class="itens-identity admin">
+          <div class="primeiro-identity primeiro">${config.admin}</div>
+          <div class="primeiro-identity segundo">${config.adminText}</div>
+        </div>
+      `)
+
+    if (response.admin === true) {
+      $('.itens-identity.admin').show()
+    } else {
+      $('.itens-identity.admin').hide()
+    }
+
+    $('.money').html(`
+      <div class="carteira-box">
+        <div class="title-carteira">carteira</div>
+        <div class="saldinho saldo-carteira" data-count="${response.carteira}">
+          ${formatter.format(response.carteira)}
+        </div>
+      </div>
+      <div class="banco-box">
+        <div class="title-banco">banco</div>
+        <div class="saldinho saldo-banco" data-count="${response.banco}">
+          ${formatter.format(response.banco)}
+        </div>
+      </div>
+    `)
+
+    if (update === false) {
+      $('.saldinho').each(function() {
+        let element = $(this)
+        let count = element.attr('data-count')
+
+        $({ countNum: element.text() }).animate(
+          { countNum: count },
+          {
+            duration: 2000,
+            easing: 'linear',
+            step: function() {
+              element.text(formatter.format(Math.floor(this.countNum)))
+            },
+            complete: function() {
+              element.text(formatter.format(this.countNum))
+            },
+          }
+        )
+      })
+    }
+  })
+}
+
+function requestItens() {
+  nuiPost('requestItens', {}, (response) => {
+    $('#box-menu-item').html('')
+    unidadesDesc = response.un
+    numero = 0
+    
+    for (let i = 0; i < response.slot; i++) {
+      if (i <= 4) {
+        $('#box-menu-item').append(`
+          <div class="slot" data-temItem="false" data-slotNovo="${i}">
+            <div class="keyBind">
+              <div class="title-keyBind">Keybind</div>
+              <div class="number-keyBind">${i + 1}</div>
             </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.nome}</div>
-              <div class="primeiro-identity segundo">${response.nome} ${response.sobrenome}</div>
-            </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.idade}</div>
-              <div class="primeiro-identity segundo">${response.idade} anos</div>
-            </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.passaporte}</div>
-              <div class="primeiro-identity segundo">${response.id}</div>
-            </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.registro}</div>
-              <div class="primeiro-identity segundo">${response.registro}</div>
-            </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.telefone}</div>
-              <div class="primeiro-identity segundo">${response.telefone}</div>
-            </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.profissao}</div>
-              <div class="primeiro-identity segundo">${response.emprego}</div>
-            </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.vip}</div>
-              <div class="primeiro-identity segundo">${response.vip}</div>
-            </div>
-            <div class="itens-identity">
-              <div class="primeiro-identity primeiro">${config.multa}</div>
-              <div class="primeiro-identity segundo">${response.multas}</div>
-            </div>
-            <div class="itens-identity admin">
-              <div class="primeiro-identity primeiro">${config.admin}</div>
-              <div class="primeiro-identity segundo">${config.adminText}</div>
-            </div>
-          `)
-        
-        if (response.admin === true) {
-          $('.itens-identity.admin').show()
-        } else {
-          $('.itens-identity.admin').hide()
-        }
-        
-        $('.money').html(`
-          <div class="carteira-box">
-            <div class="title-carteira">carteira</div>
-            <div class="saldinho saldo-carteira" data-count="${response.carteira}">${formatter.format(response.carteira)}</div>
-          </div>
-          <div class="banco-box">
-            <div class="title-banco">banco</div>
-            <div class="saldinho saldo-banco" data-count="${response.banco}">${formatter.format(response.banco)}</div>
           </div>
         `)
-        
-        if (update === false) {
-          $('.saldinho').each(function() {
-            let element = $(this)
-            let count = element.attr('data-count')
-            $({ countNum: element.text() }).animate(
-              { countNum: count },
-              {
-                duration: 2000,
-                easing: 'linear',
-                step: function() {
-                  element.text('' + formatter.format(Math.floor(this.countNum)))
-                },
-                complete: function() {
-                  element.text('' + formatter.format(this.countNum))
-                },
-              }
-            )
-          })
-        }
+      } else {
+        $('#box-menu-item').append(`
+          <div class="slot" data-temItem="false" data-slotNovo="${i}"></div>
+        `)
       }
-    )
-  }
-
-  function requestItens() {
-    $.post(
-      'http://dpn_inventory_chest/requestItens',
-      JSON.stringify({}),
-      (response) => {
-        $('#box-menu-item').html('')
-        unidadesDesc = response.un
-        numero = 0
-        
-        for (let i = 0; i < response.slot; i++) {
-          if (i <= 4) {
-            $('#box-menu-item').append(`
-              <div class="slot" data-temItem="false" data-slotNovo="${i}">
-                <div class="keyBind">
-                  <div class="title-keyBind">Keybind</div>
-                  <div class="number-keyBind">${i + 1}</div>
-                </div>
-              </div>
-            `)
-          } else {
-            $('#box-menu-item').append(`
-              <div class="slot" data-temItem="false" data-slotNovo="${i}"></div>
-            `)
-          }
-        }
-        
-        for (let i = 0; i < response.slot2; i++) {
-          if (response.inventario[i]) {
-            let item = response.inventario[i]
-            $('.slot').each(function() {
-              let slotNovo = $(this).attr('data-slotNovo')
-              if (Number(i) === Number(slotNovo)) {
-                if (slotNovo <= 4) {
-                  const itemHtml = `
-                    <div class="item-player inventory" 
-                         data-item-antigo="${i}"
-                         data-item-amount="${item.amount}"
-                         data-item-type="${item.type}"
-                         data-item-index="${item.index}"
-                         data-item-peso="${item.peso}"
-                         data-item-key="${item.key}"
-                         data-item-name="${item.name}"
-                         data-item-desc="${item.descricao}"
-                         data-item-funcao="${item.funcao}"
-                         data-weapon-dano="${item.dano}"
-                         data-weapon-cadencia="${item.cadencia}"
-                         data-weapon-precisao="${item.precisao}"
-                         data-weapon-recoil="${item.recoil}"
-                         style="background-image: url('${ip}/${item.index}.png');">
-                      <div class="top-item">
-                        <div class="amount">${item.amount}x</div>
-                        <div class="peso">${(item.peso * item.amount).toFixed(1)}kg</div>
-                      </div>
-                      <div class="bottom-item">
-                        <div class="name-item">${item.name}
-                          <div class="typeFilter">${item.filter}</div>
-                        </div>
-                      </div>
-                      <div class="keyBind-usade">
-                        KEYBIND ${Number(slotNovo) + 1}
-                      </div>
-                    </div>
-                  `
-                  $(this).attr('data-temItem', 'true')
-                  $(this).empty().append(itemHtml)
-                } else {
-                  const itemHtml = `
-                    <div class="item-player inventory" 
-                         data-item-antigo="${i}"
-                         data-item-amount="${item.amount}"
-                         data-item-type="${item.type}"
-                         data-item-index="${item.index}"
-                         data-item-peso="${item.peso}"
-                         data-item-key="${item.key}"
-                         data-item-name="${item.name}"
-                         data-item-desc="${item.descricao}"
-                         data-item-funcao="${item.funcao}"
-                         data-weapon-dano="${item.dano}"
-                         data-weapon-cadencia="${item.cadencia}"
-                         data-weapon-precisao="${item.precisao}"
-                         data-weapon-recoil="${item.recoil}"
-                         style="background-image: url('${ip}/${item.index}.png');">
-                      <div class="top-item">
-                        <div class="amount">${item.amount}x</div>
-                        <div class="peso">${(item.peso * item.amount).toFixed(1)}kg</div>
-                      </div>
-                      <div class="bottom-item">
-                        <div class="name-item">${item.name}
-                          <div class="typeFilter">${item.filter}</div>
-                        </div>
-                      </div>
-                    </div>
-                  `
-                  $(this).attr('data-temItem', 'true')
-                  $(this).empty().append(itemHtml)
-                }
-              }
-            })
-          }
-        }
-        
-        for (let a = 0; a < response.slotsComrpavel; a++) {
-          $('#box-menu-item').append(`
-            <div class="slotVenda">
-              <div class="price">Compre esse slot por <br> <b>$${response.slotPrice}</b></div>
-              <div class="button-slot-buy">Comprar</div>
-            </div>
-          `)
-        }
-        
-        $('.button-slot-buy')
-          .unbind()
-          .click(function() {
-            $.post('http://dpn_inventory_chest/buySlot', JSON.stringify({}), function() {})
-            let audio = new Audio('vendido.ogg')
-            audio.volume = 1
-            audio.play()
-          })
-        
-        let atualPeso = Number(response.atualPeso)
-        let maximoPeso = Number(response.maximoPeso)
-        let pesoRestante = maximoPeso - atualPeso
-        let pesoPercentual = atualPeso / maximoPeso
-        
-        $('.peso-texto').html(atualPeso.toFixed(1) + '/' + maximoPeso.toFixed(1))
-        $('.peso-sobrando').html(pesoRestante.toFixed(1) + ' kg sobrando')
-        updatePeso(pesoPercentual, maximoPeso)
-        getHover()
-        getDrag()
-        
-        if (craftUpdate === false) {
-          $('#box-menu-item').fadeIn()
-          $('.identity-inicial').fadeIn()
-          $('.filter-menu').fadeIn()
-          $('.right-menu').fadeIn()
-          $('.top-menu').fadeIn()
-          $('#box-menu-item-chest').fadeIn()
-          $('.right-menu').css('right', '0vw')
-          $('.filter-menu').css('left', '39vw')
-          $('.identity-inicial').css('left', '10vw')
-          $('#box-menu-item').css('right', '16.5vw')
-          $('.top-menu').css('top', '1.4vw')
-          $('#box-menu-item-chest').css('left', '5vw')
-          $('.all-loading').hide()
-        }
-      }
-    )
-  }
-  
-  document.onkeyup = function(event) {
-    if (event.which == 27) {
-      $.post('http://dpn_inventory_chest/closeInventory', JSON.stringify({}), function() {})
     }
-  }
+    
+    for (let i = 0; i < response.slot2; i++) {
+      if (response.inventario[i]) {
+        let item = response.inventario[i]
+
+        $('.slot').each(function() {
+          let slotNovo = $(this).attr('data-slotNovo')
+
+          if (Number(i) === Number(slotNovo)) {
+            let baseHtml = `
+              <div class="item-player inventory" 
+                   data-item-antigo="${i}"
+                   data-item-amount="${item.amount}"
+                   data-item-type="${item.type}"
+                   data-item-index="${item.index}"
+                   data-item-peso="${item.peso}"
+                   data-item-key="${item.key}"
+                   data-item-name="${item.name}"
+                   data-item-desc="${item.descricao}"
+                   data-item-funcao="${item.funcao}"
+                   data-weapon-dano="${item.dano}"
+                   data-weapon-cadencia="${item.cadencia}"
+                   data-weapon-precisao="${item.precisao}"
+                   data-weapon-recoil="${item.recoil}"
+                   style="background-image: url('${ip}/${item.index}.png');">
+
+                <div class="top-item">
+                  <div class="amount">${item.amount}x</div>
+                  <div class="peso">${(item.peso * item.amount).toFixed(1)}kg</div>
+                </div>
+
+                <div class="bottom-item">
+                  <div class="name-item">${item.name}
+                    <div class="typeFilter">${item.filter}</div>
+                  </div>
+                </div>
+
+                ${slotNovo <= 4 ? `
+                  <div class="keyBind-usade">
+                    KEYBIND ${Number(slotNovo) + 1}
+                  </div>
+                ` : ``}
+
+              </div>
+            `
+
+            $(this).attr('data-temItem', 'true')
+            $(this).empty().append(baseHtml)
+          }
+        })
+      }
+    }
+    
+    for (let a = 0; a < response.slotsComrpavel; a++) {
+      $('#box-menu-item').append(`
+        <div class="slotVenda">
+          <div class="price">Compre esse slot por <br> <b>$${response.slotPrice}</b></div>
+          <div class="button-slot-buy">Comprar</div>
+        </div>
+      `)
+    }
+    
+    $('.button-slot-buy')
+      .unbind()
+      .click(function() {
+        nuiPost('buySlot', {})
+        let audio = new Audio('vendido.ogg')
+        audio.volume = 1
+        audio.play()
+      })
+    
+    let atualPeso = Number(response.atualPeso)
+    let maximoPeso = Number(response.maximoPeso)
+    let pesoRestante = maximoPeso - atualPeso
+    let pesoPercentual = atualPeso / maximoPeso
+    
+    $('.peso-texto').html(atualPeso.toFixed(1) + '/' + maximoPeso.toFixed(1))
+    $('.peso-sobrando').html(pesoRestante.toFixed(1) + ' kg sobrando')
+    
+    updatePeso(pesoPercentual, maximoPeso)
+    getHover()
+    getDrag()
+    
+    if (craftUpdate === false) {
+      $('#box-menu-item').fadeIn()
+      $('.identity-inicial').fadeIn()
+      $('.filter-menu').fadeIn()
+      $('.right-menu').fadeIn()
+      $('.top-menu').fadeIn()
+      $('#box-menu-item-chest').fadeIn()
+      
+      $('.right-menu').css('right', '0vw')
+      $('.filter-menu').css('left', '39vw')
+      $('.identity-inicial').css('left', '10vw')
+      $('#box-menu-item').css('right', '16.5vw')
+      $('.top-menu').css('top', '1.4vw')
+      $('#box-menu-item-chest').css('left', '5vw')
+      $('.all-loading').hide()
+    }
+  })
+}
+  
+document.onkeyup = function(event) {
+    if (event.which == 27) {
+        nuiPost('closeInventory', {}, function() {})
+    }
+}
 })
 
 function verificarItem() {
-  craftUpdate = true
-  $('.result-craft').html('')
-  $.post('http://dpn_inventory_chest/updateCraft', JSON.stringify({ tabela: caftItens }))
-  $.post('http://dpn_inventory_chest/getResultCraft', JSON.stringify({}), (response) => {
-    if (response.resultado && response.quantidade) {
-      $('.result-craft').html(`
-        <div class="result-item-player" 
-             data-index-craft="${response.index}"
-             data-item-craft='${response.resultado}'
-             data-amount-craft="${response.quantidade}"
-             style="background-image: url('${ip}/${response.resultado}.png')">
-          <div class="amount-craft">${response.quantidade}</div>
-          <div class="name-craft">${response.resultado}</div>
-        </div>
-      `)
-      $('.result-craft').css('opacity', '1')
-    }
-    updateDragCraft()
-  })
+    craftUpdate = true
+    $('.result-craft').html('')
+
+    nuiPost('updateCraft', { tabela: caftItens })
+    nuiPost('getResultCraft', {}, (response) => {
+        if (response.resultado && response.quantidade) {
+            $('.result-craft').html(`
+                <div>${response.quantidade}</div>
+                <div>${response.resultado}</div>
+            `)
+            $('.result-craft').css('opacity', '1')
+        }
+
+        updateDragCraft()
+    })
 }
 
 function restFilter() {
@@ -668,13 +649,13 @@ function getDrag() {
           amount = parseInt(amount)
           
           if (Number(amount) > 0) {
-            $.post('http://dpn_inventory_chest/moverItemChest', JSON.stringify({
+            nuiPost('moverItemChest', {
               item: itemKey,
               oldSlot: oldSlot,
               newSlot: newSlot,
               amount: parseInt(amount),
               chest: nomeDoBau,
-            }))
+            })
             let audio = new Audio('slot.ogg')
             audio.volume = 1
             audio.play()
@@ -700,13 +681,13 @@ function getDrag() {
           amount = parseInt(amount)
           
           if (Number(amount) > 0) {
-            $.post('http://dpn_inventory_chest/moverItemTrunckChest', JSON.stringify({
-              item: itemKey,
-              oldSlot: oldSlot,
-              newSlot: newSlot,
-              amount: parseInt(amount),
-              trunck: nomeTrunckChest,
-            }))
+              nuiPost('moverItemTrunckChest', {
+                item: itemKey,
+                oldSlot: oldSlot,
+                newSlot: newSlot,
+                amount: parseInt(amount),
+                trunck: nomeTrunckChest,
+              })
             let audio = new Audio('slot.ogg')
             audio.volume = 1
             audio.play()
@@ -730,13 +711,13 @@ function getDrag() {
           amount = parseInt(amount)
           
           if (Number(amount) > 0) {
-            $.post('http://dpn_inventory_chest/moverItemHouse', JSON.stringify({
+           nuiPost('moverItemHouse', {
               item: itemKey,
               oldSlot: oldSlot,
               newSlot: newSlot,
               amount: parseInt(amount),
               trunck: nomeHouse,
-            }))
+            })
             let audio = new Audio('slot.ogg')
             audio.volume = 1
             audio.play()
@@ -761,13 +742,13 @@ function getDrag() {
             amount = parseInt(amount)
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/colocarItemInventory', JSON.stringify({
+              nuiPost('colocarItemInventory', {
                 item: itemKey,
                 oldSlot: oldSlot,
                 newSlot: newSlot,
                 amount: parseInt(amount),
                 chest: nomeDoBau,
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -789,11 +770,11 @@ function getDrag() {
             if (amount < 1) amount = 1
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/venderItem', JSON.stringify({
+              nuiPost('venderItem', {
                 item: itemKey,
                 slot: oldSlot,
                 amount: parseInt(amount),
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -817,13 +798,13 @@ function getDrag() {
             amount = parseInt(amount)
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/colocarItemTrunkInventory', JSON.stringify({
+              nuiPost('colocarItemTrunkInventory', {
                 item: itemKey,
                 oldSlot: oldSlot,
                 newSlot: newSlot,
                 amount: parseInt(amount),
                 chest: nomeTrunckChest,
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -847,13 +828,13 @@ function getDrag() {
             amount = parseInt(amount)
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/colocarItemHouse', JSON.stringify({
+              nuiPost('colocarItemHouse', {
                 item: itemKey,
                 oldSlot: oldSlot,
                 newSlot: newSlot,
                 amount: parseInt(amount),
                 chest: nomeHouse,
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -886,12 +867,12 @@ function getDrag() {
             amount = parseInt(amount)
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/moverItem', JSON.stringify({
+              nuiPost('moverItem', {
                 item: itemKey,
                 oldSlot: oldSlot,
                 newSlot: newSlot,
                 amount: parseInt(amount),
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -918,13 +899,13 @@ function getDrag() {
             amount = parseInt(amount)
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/retirarItemChest', JSON.stringify({
+              nuiPost('retirarItemChest', {
                 item: itemKey,
                 oldSlot: oldSlot,
                 newSlot: newSlot,
                 amount: parseInt(amount),
                 chest: nomeDoBau,
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -950,13 +931,13 @@ function getDrag() {
             amount = parseInt(amount)
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/retirarItemTrunk', JSON.stringify({
+              nuiPost('retirarItemTrunk', {
                 item: itemKey,
                 oldSlot: oldSlot,
                 newSlot: newSlot,
                 amount: parseInt(amount),
                 chest: nomeTrunckChest,
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -982,13 +963,13 @@ function getDrag() {
             amount = parseInt(amount)
             
             if (Number(amount) > 0) {
-              $.post('http://dpn_inventory_chest/retirarItemHouse', JSON.stringify({
+              nuiPost('retirarItemHouse', {
                 item: itemKey,
                 oldSlot: oldSlot,
                 newSlot: newSlot,
                 amount: parseInt(amount),
                 chest: nomeHouse,
-              }))
+              })
               let audio = new Audio('slot.ogg')
               audio.volume = 1
               audio.play()
@@ -1005,12 +986,12 @@ function getDrag() {
         
         if (parseInt(amount) > 0) {
           amount = parseInt(amount)
-          $.post('http://dpn_inventory_chest/buyItem', JSON.stringify({
+          nuiPost('buyItem', {
             item: itemKey,
             preco: itemPrice,
             newSlot: newSlot,
             amount: amount,
-          }))
+          })
           let audio = new Audio('slot.ogg')
           audio.volume = 1
           audio.play()
@@ -1023,12 +1004,12 @@ function getDrag() {
       let newSlot = $(this).attr('data-slotNovo')
       
       if (craftItem && craftAmount) {
-        $.post('http://dpn_inventory_chest/resgatarItem', JSON.stringify({
+        nuiPost('resgatarItem', {
           slot: newSlot,
           quantidade: craftAmount,
           item: craftItem,
           index: craftIndex,
-        }))
+        })
         
         caftItens = [
           { item: 'nada', quantidade: 0 },
@@ -1090,11 +1071,11 @@ function getDrag() {
             caftItens[parseInt(slotClass)].item = itemIndex
             caftItens[parseInt(slotClass)].quantidade = parseInt(amount)
             
-            $.post('http://dpn_inventory_chest/craftItemRemove', JSON.stringify({
+            nuiPost('craftItemRemove', {
               item: itemKey,
               oldSlot: oldSlot,
               amount: parseInt(amount),
-            }))
+            })
             verificarItem()
           }
         }
@@ -1113,10 +1094,10 @@ function getDrag() {
       let itemName = caftItens[Number(slotClass)].item
       let itemAmount = caftItens[Number(slotClass)].quantidade
       
-      $.post('http://dpn_inventory_chest/craftItemDbClick', JSON.stringify({
+      nuiPost('craftItemDbClick', {
         item: itemName,
         amount: parseInt(itemAmount),
-      }))
+      })
       
       caftItens[Number(slotClass)].item = 'nada'
       caftItens[Number(slotClass)].quantidade = 0
@@ -1143,39 +1124,39 @@ function getDrag() {
     },
   })
 
-  $('.item-player')
-    .off('contextmenu')
-    .on('contextmenu', function(event) {
-        event.preventDefault()
-        event.stopPropagation()
+$('.item-player')
+  .off('contextmenu')
+  .on('contextmenu', function(event) {
+    event.preventDefault()
+    event.stopPropagation()
 
-        let itemType = $(this).data('item-type')
-        let itemKey = $(this).data('item-key')
-        let slot = $(this).data('item-antigo')
-        let amount = document.getElementById('quantidade').value
+    let itemType = $(this).data('item-type')
+    let itemKey = $(this).data('item-key')
+    let slot = $(this).data('item-antigo')
+    let amount = document.getElementById('quantidade').value
 
-        if (metade === true && tudo === false) {
-            amount = Number($(this).data('item-amount')) / 2
-        } else if (tudo === true && metade === false) {
-            amount = Number($(this).data('item-amount'))
-        }
+    if (metade === true && tudo === false) {
+      amount = Number($(this).data('item-amount')) / 2
+    } else if (tudo === true && metade === false) {
+      amount = Number($(this).data('item-amount'))
+    }
 
-        if (amount < 1) amount = 1
-        amount = parseInt(amount)
+    if (amount < 1) amount = 1
+    amount = parseInt(amount)
 
-        if (!itemKey || slot === undefined || slot === null) {
-            return false
-        }
+    if (!itemKey || slot === undefined || slot === null) {
+      return false
+    }
 
-        $.post('http://dpn_inventory_chest/usarItemFechar', JSON.stringify({
-            item: itemKey,
-            amount: amount,
-            type: itemType,
-            slot: slot
-        }))
-
-        return false
+    nuiPost('usarItemFechar', {
+      item: itemKey,
+      amount: amount,
+      type: itemType,
+      slot: slot
     })
+
+    return false
+  })
   
   $('.action').droppable({
     hoverClass: 'actionDropp',
@@ -1195,12 +1176,12 @@ function getDrag() {
         if (amount < 1) amount = 1
         amount = parseInt(amount)
         
-        $.post('http://dpn_inventory_chest/usarItem', JSON.stringify({
+        nuiPost('usarItem', {
           item: itemKey,
           amount: parseInt(amount),
           type: itemType,
           slot: slot,
-        }))
+        })
       } else if ($(this).hasClass('enviar')) {
         let itemKey = ui.draggable.data('item-key')
         let amount = document.getElementById('quantidade').value
@@ -1216,11 +1197,11 @@ function getDrag() {
         amount = parseInt(amount)
         
         if (amount > 0) {
-          $.post('http://dpn_inventory_chest/enviarItem', JSON.stringify({
-            item: itemKey,
-            amount: parseInt(amount),
-            slot: slot,
-          }))
+          nuiPost('enviarItem', {
+          item: itemKey,
+          amount: parseInt(amount),
+          slot: slot,
+        })
         }
       } else if ($(this).hasClass('dropar')) {
         let itemKey = ui.draggable.data('item-key')
@@ -1237,11 +1218,11 @@ function getDrag() {
         amount = parseInt(amount)
         
         if (amount > 0) {
-          $.post('http://dpn_inventory_chest/droparItem', JSON.stringify({
-            item: itemKey,
-            amount: parseInt(amount),
-            slot: slot,
-          }))
+          nuiPost('droparItem', {
+          item: itemKey,
+          amount: parseInt(amount),
+          slot: slot,
+        })
         }
       }
     },
