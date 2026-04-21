@@ -4,42 +4,91 @@ local actived = {}
 local bandagem = {}
 local pick = {}
 
-function recarregarArma(source,user_id,item,amount,slot)
+local function normalizeWeaponItemName(item)
+    if not item then return nil end
+
+    if item:find("^WEAPON_") then
+        return item
+    end
+
+    return item:gsub("^wbody|", "")
+end
+
+local function getAmmoItemNameFromWeapon(weapon)
+    if not weapon then return nil end
+
+    local normalizedWeapon = normalizeWeaponItemName(weapon)
+    return normalizedWeapon:gsub("^WEAPON_", "AMMO_")
+end
+
+local function getWeaponNameFromAmmoItem(item)
+    if not item then return nil end
+
+    if item:find("^AMMO_") then
+        return item:gsub("^AMMO_", "WEAPON_")
+    end
+
+    local oldWeapon = item:gsub("^wammo|", "")
+    if oldWeapon and oldWeapon ~= item then
+        return oldWeapon
+    end
+
+    return item
+end
+
+function recarregarArma(source, user_id, item, amount, slot)
     local uweapons = vRPclient.getWeapons(source)
-    local weaponuse = string.gsub(item,"wammo|","")
-    local weaponusename = "wammo|"..weaponuse
+    local weaponuse = getWeaponNameFromAmmoItem(item)
+    local weaponusename = getAmmoItemNameFromWeapon(weaponuse)
     local identity = vRP.getUserIdentity(user_id)
+
+    if not weaponuse or not weaponusename then
+        return
+    end
+
     if uweapons[weaponuse] then
-        local itemAmount = 0
         local inventory = getPlayerInventory(user_id)
-        for k,v in pairs(inventory) do
+
+        for k, v in pairs(inventory) do
             if weaponusename == v.item then
                 if v.amount > 250 then
-                v.amount = 250
+                    v.amount = 250
                 end
 
-                itemAmount = v.amount
-        
-			    if vRP.tryGetInventoryItem(user_id,weaponusename,parseInt(amount),slot) then
-				    local weapons = {}
-				    weapons[weaponuse] = { ammo = amount }
-				    itemAmount = amount
-                    dPNclient._giveWeapons(source,weapons,false)
-                    
-				    SendWebhookMessage(ConfigServer['webhook'].equip,"```prolog\n[ID]: "..user_id.." "..identity.name.." "..identity.firstname.." \n[RECARREGOU]: "..item.." \n[MUNICAO]: "..amount.." "..os.date("\n[Data]: %d/%m/%Y [Hora]: %H:%M:%S").." \r```")
-			    end
+                if vRP.tryGetInventoryItem(user_id, weaponusename, parseInt(amount), slot) then
+                    local weapons = {}
+                    weapons[weaponuse] = { ammo = amount }
+
+                    dPNclient._giveWeapons(source, weapons, false)
+
+                    SendWebhookMessage(ConfigServer['webhook'].equip,
+                        "```prolog\n[ID]: " .. user_id .. " " .. identity.name .. " " .. identity.firstname ..
+                        " \n[RECARREGOU]: " .. item ..
+                        " \n[MUNICAO]: " .. amount ..
+                        " " .. os.date("\n[Data]: %d/%m/%Y [Hora]: %H:%M:%S") .. " \r```"
+                    )
+                end
+
+                break
             end
         end
     end
 end
 
-function equipWeapon(source, user_id,item,amount,slot)
-    if vRP.tryGetInventoryItem(user_id,item,1,slot) then
+function equipWeapon(source, user_id, item, amount, slot)
+    if vRP.tryGetInventoryItem(user_id, item, 1, slot) then
         local weapons = {}
         local identity = getUserIdentity(user_id)
-        weapons[string.gsub(item,"wbody|","")] = { ammo = 0 }
-        dPNclient._giveWeapons(source,weapons,false)
-        SendWebhookMessage(ConfigServer['webhook'].equip,"```prolog\n[ID]: "..user_id.." "..identity.name.." "..identity.firstname.." \n[EQUIPOU]: "..item.." "..os.date("\n[Data]: %d/%m/%Y [Hora]: %H:%M:%S").." \r```")
+        local weaponName = normalizeWeaponItemName(item)
+
+        weapons[weaponName] = { ammo = 0 }
+        dPNclient._giveWeapons(source, weapons, false)
+
+        SendWebhookMessage(ConfigServer['webhook'].equip,
+            "```prolog\n[ID]: " .. user_id .. " " .. identity.name .. " " .. identity.firstname ..
+            " \n[EQUIPOU]: " .. item ..
+            " " .. os.date("\n[Data]: %d/%m/%Y [Hora]: %H:%M:%S") .. " \r```"
+        )
     end
 end
 

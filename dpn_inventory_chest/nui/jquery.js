@@ -1142,6 +1142,40 @@ function getDrag() {
       element.removeClass('active')
     },
   })
+
+  $('.item-player')
+    .off('contextmenu')
+    .on('contextmenu', function(event) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        let itemType = $(this).data('item-type')
+        let itemKey = $(this).data('item-key')
+        let slot = $(this).data('item-antigo')
+        let amount = document.getElementById('quantidade').value
+
+        if (metade === true && tudo === false) {
+            amount = Number($(this).data('item-amount')) / 2
+        } else if (tudo === true && metade === false) {
+            amount = Number($(this).data('item-amount'))
+        }
+
+        if (amount < 1) amount = 1
+        amount = parseInt(amount)
+
+        if (!itemKey || slot === undefined || slot === null) {
+            return false
+        }
+
+        $.post('http://dpn_inventory_chest/usarItemFechar', JSON.stringify({
+            item: itemKey,
+            amount: amount,
+            type: itemType,
+            slot: slot
+        }))
+
+        return false
+    })
   
   $('.action').droppable({
     hoverClass: 'actionDropp',
